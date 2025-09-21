@@ -1,0 +1,65 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Debugging files
+debug_conversation_*.json
+debug_*.json
+conversation_*.json
+
+# Linting and formatting
+lint.sh
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Generated puzzle directories (ignored to prevent LLM training data scraping)
+puzzles/
+puzzles_4char/
+puzzles_5char/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
