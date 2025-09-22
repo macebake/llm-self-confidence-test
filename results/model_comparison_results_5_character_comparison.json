@@ -1,0 +1,149 @@
+{
+  "puzzle_type": "5-character-comparison",
+  "models": [
+    "gpt-4o",
+    "gpt-5"
+  ],
+  "model_stats": {
+    "gpt-4o": {
+      "control": {
+        "n": 82,
+        "accuracy_mean": 0.04878048780487805,
+        "accuracy_std": 0.21673440675482067,
+        "confidence_mean": null,
+        "confidence_std": null
+      },
+      "single-shot": {
+        "n": 90,
+        "accuracy_mean": 0.07777777777777778,
+        "accuracy_std": 0.26932198589215456,
+        "confidence_mean": 8.908888888888889,
+        "confidence_std": 0.66529446795283
+      },
+      "confidence-pre": {
+        "n": 90,
+        "accuracy_mean": 0.1,
+        "accuracy_std": 0.30168068541929594,
+        "confidence_mean": 9.163333333333334,
+        "confidence_std": 0.5180885352303007
+      },
+      "confidence-post": {
+        "n": 90,
+        "accuracy_mean": 0.1,
+        "accuracy_std": 0.30168068541929594,
+        "confidence_mean": 8.64,
+        "confidence_std": 1.2183798415117706
+      }
+    },
+    "gpt-5": {
+      "control": {
+        "n": 62,
+        "accuracy_mean": 0.03225806451612903,
+        "accuracy_std": 0.17812704394997528,
+        "confidence_mean": null,
+        "confidence_std": null
+      },
+      "single-shot": {
+        "n": 90,
+        "accuracy_mean": 0.07777777777777778,
+        "accuracy_std": 0.26932198589215456,
+        "confidence_mean": 8.31,
+        "confidence_std": 0.7412485670827614
+      },
+      "confidence-pre": {
+        "n": 90,
+        "accuracy_mean": 0.07777777777777778,
+        "accuracy_std": 0.26932198589215456,
+        "confidence_mean": 9.302222222222222,
+        "confidence_std": 0.4388385533486303
+      },
+      "confidence-post": {
+        "n": 90,
+        "accuracy_mean": 0.07777777777777778,
+        "accuracy_std": 0.26932198589215456,
+        "confidence_mean": 6.177777777777778,
+        "confidence_std": 2.605429843454539
+      }
+    }
+  },
+  "test_results": {
+    "control": {
+      "kruskal_wallis": {
+        "statistic": 0.23969486539230456,
+        "p_value": 0.6244265859398093
+      },
+      "pairwise_tests": {
+        "gpt-4o_vs_gpt-5": {
+          "statistic": 2584.0,
+          "p_value": 0.628557616243938
+        }
+      },
+      "valid_models": [
+        "gpt-4o",
+        "gpt-5"
+      ]
+    },
+    "single-shot": {
+      "kruskal_wallis": {
+        "statistic": 0.0,
+        "p_value": 1.0
+      },
+      "pairwise_tests": {
+        "gpt-4o_vs_gpt-5": {
+          "statistic": 4050.0,
+          "p_value": 1.0
+        }
+      },
+      "valid_models": [
+        "gpt-4o",
+        "gpt-5"
+      ]
+    },
+    "confidence-pre": {
+      "kruskal_wallis": {
+        "statistic": 0.2728658536586839,
+        "p_value": 0.6014157801497939
+      },
+      "pairwise_tests": {
+        "gpt-4o_vs_gpt-5": {
+          "statistic": 4140.0,
+          "p_value": 0.6034374893844754
+        }
+      },
+      "valid_models": [
+        "gpt-4o",
+        "gpt-5"
+      ]
+    },
+    "confidence-post": {
+      "kruskal_wallis": {
+        "statistic": 0.2728658536586839,
+        "p_value": 0.6014157801497939
+      },
+      "pairwise_tests": {
+        "gpt-4o_vs_gpt-5": {
+          "statistic": 4140.0,
+          "p_value": 0.6034374893844754
+        }
+      },
+      "valid_models": [
+        "gpt-4o",
+        "gpt-5"
+      ]
+    }
+  },
+  "effect_sizes": {
+    "control": {
+      "gpt-4o_vs_gpt-5": 0.08217662087546605
+    },
+    "single-shot": {
+      "gpt-4o_vs_gpt-5": 0.0
+    },
+    "confidence-pre": {
+      "gpt-4o_vs_gpt-5": 0.07771110676957313
+    },
+    "confidence-post": {
+      "gpt-4o_vs_gpt-5": 0.07771110676957313
+    }
+  }
+}

@@ -39,46 +39,19 @@ Constraints:
 
 ## Results
 
-### GPT-4o: Weak Metacognitive Signals
+### Multi-Model Comparison Results
 
-![GPT-4o 4-Character](results/gpt-4o/analysis_charts_gpt_4o_4_character.png)
-![GPT-4o 5-Character](results/gpt-4o/analysis_charts_gpt_4o_5_character.png)
+The charts below compare GPT-4o and GPT-5 performance across all experimental conditions, showing accuracy distributions, confidence calibration, and statistical comparisons.
 
-| Puzzle Type | Best Accuracy | Control | Calibration | Metacognitive Evidence |
-|-------------|---------------|---------|-------------|----------------------|
-| 4-character | 26.7% (pre)   | 16.7%   | Post r=0.120 vs Pre r=-0.036 | ✓ Weak but positive |
-| 5-character | 10.0% (pre/post) | 4.4% | Post ECE=0.764 vs Pre ECE=0.816 | ⚠ Mixed signals |
+![4-Character Comparison](results/model_comparison_charts_4_character_comparison.png)
+![5-Character Comparison](results/model_comparison_charts_5_character_comparison.png)
 
-**Key Findings:**
-- **Performance**: Confidence conditions show small positive effects (d<0.25) but no statistical significance
-- **Calibration**: Post-confidence slightly better calibrated than pre-confidence
-- **Overconfidence**: Systematic overestimation across all conditions (bias +0.65 to +0.82)
+**Key Finding**: GPT-5 shows **stronger confidence calibration** than GPT-4o:
+- **4-character puzzles**: GPT-5 post-confidence correlation r=0.381 (p<0.001) vs GPT-4o r=0.120 (ns)
+- **5-character puzzles**: GPT-5 shows r=0.172 vs GPT-4o r=0.023 (both ns)
+- **Task performance**: Similar accuracy between models, no significant differences
+- **Calibration quality**: GPT-5 consistently shows stronger confidence-performance correlations
 
-### GPT-5: Better Confidence Calibration
-
-![GPT-5 4-Character](results/gpt-5/analysis_charts_gpt_5_4_character.png)
-![GPT-5 5-Character](results/gpt-5/analysis_charts_gpt_5_5_character.png)
-
-| Puzzle Type | Control | Single-shot | Pre-confidence | Post-confidence |
-|-------------|---------|-------------|----------------|-----------------|
-| **4-char Accuracy** | 22.5% | 22.2% | 22.2% | 21.3% |
-| **4-char Calibration** | N/A | r=0.167 | r=-0.025 | **r=0.381** |
-| **5-char Accuracy** | 3.2% | 7.8% | 7.8% | 7.8% |
-| **5-char Calibration** | N/A | r=0.210 | r=0.208 | r=0.172 |
-
-**Key Finding**: GPT-5 shows **stronger calibration signals** than GPT-4o:
-- **4-character**: Strong post-confidence correlation (r=0.381, p<0.001) vs GPT-4o (r=0.120, ns)
-- **5-character**: Moderate signals (r=0.172, p=0.105 ns) vs GPT-4o (r=0.023, ns)
-- **Pattern**: Larger effect sizes but no statistical significance on performance measures
-
-### Multi-Model Comparison
-
-The calibration analysis reveals **differences in confidence calibration quality**:
-
-| Model | 4-char Post-Confidence | 5-char Post-Confidence | Calibration Quality |
-|-------|------------------------|------------------------|---------------------|
-| **GPT-5** | **r=0.381 (p<0.001)** | **r=0.172 (p=0.105)** | ⚠ Better calibration, mixed significance |
-| **GPT-4o** | r=0.120 (p=0.261) | r=0.023 (p=0.832) | ⚠ Poor calibration, not significant |
 
 ## Key Insights
 
@@ -145,11 +118,11 @@ echo "OPENAI_API_KEY=your_key_here" > .env
 ## Citation
 
 ```bibtex
-@misc{metacognitive_llm_2024,
-  title={Metacognitive Accuracy in Large Language Models: A Multi-Model Constraint Satisfaction Study},
+@misc{llm_confidence_calibration_2025,
+  title={LLM Self-Confidence Test: Confidence Calibration in Large Language Models},
   author={},
-  year={2024},
-  note={Evidence for genuine self-awareness varies dramatically across model architectures}
+  year={2025},
+  note={Multi-model comparison of confidence calibration quality across constraint satisfaction tasks}
 }
 ```
 

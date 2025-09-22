@@ -76,7 +76,17 @@ class ModelComparisonAnalyzer:
         else:
             self.data = raw_data
 
-        self.models = sorted(self.data['model'].unique()) if 'model' in self.data.columns and len(self.data) > 0 else []
+        # Handle models safely
+        if 'model' in self.data.columns and len(self.data) > 0:
+            # Filter out NaN/null values and convert to string for sorting
+            model_values = self.data['model'].dropna().astype(str).unique()
+            self.models = sorted(model_values)
+        else:
+            # If no model column, infer from filenames
+            if len(file_paths) > 1:
+                self.models = [f"Model_{i+1}" for i in range(len(file_paths))]
+            else:
+                self.models = ["Unknown_Model"]
 
         print(f"Total loaded: {len(self.data)} records across {len(self.models)} models")
         print(f"Models: {self.models}")
