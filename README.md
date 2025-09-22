@@ -1,6 +1,6 @@
 # Metacognitive Accuracy in Large Language Models
 
-A controlled experiment testing whether LLMs possess genuine self-awareness or merely pattern-match confidence expressions through constraint satisfaction puzzles.
+A controlled experiment testing whether LLMs can accurately calibrate their confidence ratings or merely pattern-match confidence expressions through constraint satisfaction puzzles.
 
 ## Quick Start
 
@@ -14,7 +14,7 @@ python src/analysis/analysis.py results.jsonl --puzzle-type "test"
 
 ## Research Question
 
-**Do LLMs have genuine metacognitive awareness?** We test this by comparing confidence ratings made *before* solving problems vs *after* completing them. True self-awareness should show better calibration for post-solution confidence.
+**Can LLMs accurately calibrate their confidence?** We test this by comparing confidence ratings made *before* solving problems vs *after* completing them. Good calibration should show stronger correlation between post-solution confidence and actual performance.
 
 ## Experimental Design
 
@@ -51,10 +51,10 @@ Constraints:
 
 **Key Findings:**
 - **Performance**: Confidence conditions show small positive effects (d<0.25) but no statistical significance
-- **Calibration**: Post-confidence slightly better calibrated, suggesting minimal self-awareness
+- **Calibration**: Post-confidence slightly better calibrated than pre-confidence
 - **Overconfidence**: Systematic overestimation across all conditions (bias +0.65 to +0.82)
 
-### GPT-5: Strong Metacognitive Signals
+### GPT-5: Better Confidence Calibration
 
 ![GPT-5 4-Character](results/gpt-5/analysis_charts_gpt_5_4_character.png)
 ![GPT-5 5-Character](results/gpt-5/analysis_charts_gpt_5_5_character.png)
@@ -73,24 +73,24 @@ Constraints:
 
 ### Multi-Model Comparison
 
-The calibration analysis reveals **stark differences in metacognitive capabilities**:
+The calibration analysis reveals **differences in confidence calibration quality**:
 
-| Model | 4-char Post-Confidence | 5-char Post-Confidence | Metacognitive Evidence |
-|-------|------------------------|------------------------|------------------------|
-| **GPT-5** | **r=0.381 (p<0.001)** | **r=0.172 (p=0.105)** | ⚠ Stronger signals, mixed significance |
-| **GPT-4o** | r=0.120 (p=0.261) | r=0.023 (p=0.832) | ⚠ Weak signals, not significant |
+| Model | 4-char Post-Confidence | 5-char Post-Confidence | Calibration Quality |
+|-------|------------------------|------------------------|---------------------|
+| **GPT-5** | **r=0.381 (p<0.001)** | **r=0.172 (p=0.105)** | ⚠ Better calibration, mixed significance |
+| **GPT-4o** | r=0.120 (p=0.261) | r=0.023 (p=0.832) | ⚠ Poor calibration, not significant |
 
 ## Key Insights
 
-### 🧠 **Calibration Signals Vary by Model Architecture**
-GPT-5 shows stronger calibration correlations (r=0.381 on 4-char, significant) than GPT-4o, but most metacognitive effects lack statistical significance.
+### 🧠 **Confidence Calibration Varies by Model Architecture**
+GPT-5 shows stronger confidence-performance correlations (r=0.381 on 4-char, significant) than GPT-4o, but most calibration effects lack statistical significance.
 
 ### 📊 **Performance vs Calibration Are Different Phenomena**
-- **Performance**: No significant differences between confidence conditions across models
-- **Calibration**: Measurable differences in correlation strength, mixed statistical significance
+- **Task Performance**: No significant differences between confidence conditions across models
+- **Confidence Calibration**: Measurable differences in correlation strength, mixed statistical significance
 
 ### ⚖️ **Effect Sizes vs Statistical Power**
-Moderate effect sizes (GPT-5 shows 3x stronger correlations) but limited sample sizes result in mixed statistical significance for metacognitive measures.
+Moderate effect sizes (GPT-5 shows 3x stronger correlations) but limited sample sizes result in mixed statistical significance for calibration measures.
 
 ## Usage
 
@@ -110,7 +110,7 @@ python src/analysis/comparison_analysis.py gpt4o.jsonl gpt5.jsonl --puzzle-type 
 ### Analysis Features
 - **Performance metrics**: Accuracy, effect sizes, statistical significance
 - **Calibration analysis**: Correlation, Brier score, Expected Calibration Error
-- **Metacognitive assessment**: Pre vs post-confidence comparison
+- **Confidence assessment**: Pre vs post-confidence comparison
 - **Visualizations**: 6-panel charts including reliability diagrams
 
 ### Supported Models
@@ -155,4 +155,4 @@ echo "OPENAI_API_KEY=your_key_here" > .env
 
 ---
 
-**Status**: **GPT-5 shows stronger calibration signals than GPT-4o (r=0.381 vs r=0.120 post-confidence correlation) but metacognitive effects show mixed statistical significance. Framework supports comprehensive multi-model calibration assessment.**
+**Status**: **GPT-5 shows stronger calibration signals than GPT-4o (r=0.381 vs r=0.120 post-confidence correlation) but confidence calibration effects show mixed statistical significance. Framework supports comprehensive multi-model calibration assessment.**
