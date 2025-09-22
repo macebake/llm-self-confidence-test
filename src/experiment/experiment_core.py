@@ -16,11 +16,11 @@ from .validation import ResultValidator
 load_dotenv()
 
 
-def run_experiment(puzzle_ids: List[int], iterations: int = 1, puzzle_dir: str = "puzzles", save_incremental: bool = False) -> List[Dict]:
+def run_experiment(puzzle_ids: List[int], iterations: int = 1, puzzle_dir: str = "puzzles", save_incremental: bool = False, model: str = "gpt-4o") -> List[Dict]:
     """Run experiment on specified puzzles"""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    validator = ResultValidator(client)
-    runner = ExperimentRunner(client, validator)
+    validator = ResultValidator(client, model)
+    runner = ExperimentRunner(client, validator, model)
 
     conditions = ["single-shot", "confidence-pre", "confidence-post", "control"]
     all_results = []
@@ -76,6 +76,7 @@ def run_experiment(puzzle_ids: List[int], iterations: int = 1, puzzle_dir: str =
                     "confidence": confidence,
                     "proposed_solution": solution,
                     "target_solution": puzzle["target_sequence"],
+                    "model": model,
                 }
 
                 all_results.append(result)

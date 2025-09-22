@@ -12,16 +12,26 @@ from .validation import ResultValidator
 
 
 class ExperimentRunner:
-    def __init__(self, openai_client: OpenAI, validator: ResultValidator):
+    def __init__(self, openai_client: OpenAI, validator: ResultValidator, model: str = "gpt-4o"):
         self.client = openai_client
         self.validator = validator
+        self.model = model
 
     def _make_api_call(self, messages: List[Dict], max_tokens: int = 100) -> Optional[str]:
         """Make API call with error handling"""
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o", messages=messages, max_tokens=max_tokens, timeout=30
-            )
+            # GPT-5 has different parameters and needs reasoning_effort for speed
+            if self.model.startswith("gpt-5"):
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    extra_body={"reasoning_effort": "minimal"},  # Fast responses for puzzle tasks
+                    timeout=120  # Longer timeout but minimal reasoning should be fast
+                )
+            else:
+                response = self.client.chat.completions.create(
+                    model=self.model, messages=messages, max_tokens=max_tokens, timeout=60
+                )
             return response.choices[0].message.content
         except Exception as e:
             print(f"API call error: {e}")

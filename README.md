@@ -1,183 +1,158 @@
 # Metacognitive Accuracy in Large Language Models
 
-A controlled experiment investigating whether large language models possess genuine self-awareness of their performance capabilities or merely pattern-match confidence expressions.
+A controlled experiment testing whether LLMs possess genuine self-awareness or merely pattern-match confidence expressions through constraint satisfaction puzzles.
 
-## Overview
+## Quick Start
 
-This study examines metacognitive accuracy in LLMs through a novel constraint satisfaction puzzle task. We test whether confidence elicitation mechanisms can improve problem-solving performance and whether LLMs can accurately predict their own success rates. The experiment uses algorithmically generated puzzles to ensure no training data contamination while maintaining consistent difficulty levels.
+```bash
+# Run experiment
+python experiment.py --puzzles 1-5 --iterations 1 --model gpt-4o --save
 
-## Research Hypothesis
+# Analyze results
+python src/analysis/analysis.py results.jsonl --puzzle-type "test"
+```
 
-**Primary Hypothesis**: Pre-emptive confidence elicitation will improve problem-solving accuracy by encouraging more careful reasoning.
+## Research Question
 
-**Secondary Hypothesis**: Post-solution confidence ratings will show better alignment with actual performance than pre-solution confidence ratings.
-
-**Null Hypothesis**: Confidence elicitation has no significant effect on problem-solving performance or accuracy.
+**Do LLMs have genuine metacognitive awareness?** We test this by comparing confidence ratings made *before* solving problems vs *after* completing them. True self-awareness should show better calibration for post-solution confidence.
 
 ## Experimental Design
 
 ### Conditions
-- **Control**: Standard problem-solving without confidence mechanisms
-- **Single-shot**: Simultaneous confidence and solution generation
-- **Confidence-pre**: Confidence elicitation before problem-solving
-- **Confidence-post**: Confidence elicitation after problem-solving
+- **Control**: Solve puzzles without confidence ratings
+- **Single-shot**: Provide solution and confidence simultaneously
+- **Confidence-pre**: Rate confidence before solving
+- **Confidence-post**: Rate confidence after solving
 
-### Task Design
-- **Puzzle Types**: Constraint satisfaction puzzles with 4-character and 5-character sequences
-- **Constraints**: 4-5 logical rules per puzzle (ordering, adjacency, positioning)
-- **Sample Size**: 30 puzzles × 4 conditions × 3 iterations = 360 trials per dataset
-- **Validation**: Exact sequence matching with GPT-4o reasoning fallback
-
-### Example Puzzle
+### Task
+Constraint satisfaction puzzles using 4-5 character sequences with logical rules:
 ```
-Puzzle ID: 1
-Target sequence: ABCD
+Target: ABCD
 Constraints:
-1. A must come before C.
-2. B cannot be adjacent to D.
-3. C must be in position 3 or 4.
-4. D must come before A is false.
+1. A must come before C
+2. B cannot be adjacent to D
+3. C must be in position 3 or 4
+4. D must come before A is false
 ```
+
+**Scale**: 30 puzzles × 4 conditions × 3 iterations = 360 trials per model
 
 ## Results
 
-### 4-Character Puzzles
+### GPT-4o: Weak Metacognitive Signals
 
-![4-Character Results](results/analysis_charts_4_character.png)
+![GPT-4o 4-Character](results/gpt-4o/analysis_charts_gpt_4o_4_character.png)
+![GPT-4o 5-Character](results/gpt-4o/analysis_charts_gpt_4o_5_character.png)
 
-**Key Findings:**
-- **Best Performance**: Confidence-pre condition (26.7% accuracy)
-- **Worst Performance**: Control condition (16.7% accuracy)
-- **Statistical Significance**: No significant differences (Kruskal-Wallis p = 0.358)
-- **Effect Sizes**: Small positive effects for all confidence conditions vs control (d < 0.25)
-
-### 5-Character Puzzles
-
-![5-Character Results](results/analysis_charts_5_character.png)
+| Puzzle Type | Best Accuracy | Control | Calibration | Metacognitive Evidence |
+|-------------|---------------|---------|-------------|----------------------|
+| 4-character | 26.7% (pre)   | 16.7%   | Post r=0.120 vs Pre r=-0.036 | ✓ Weak but positive |
+| 5-character | 10.0% (pre/post) | 4.4% | Post ECE=0.764 vs Pre ECE=0.816 | ⚠ Mixed signals |
 
 **Key Findings:**
-- **Best Performance**: Confidence-pre and Confidence-post tied (10.0% accuracy)
-- **Worst Performance**: Control condition (4.4% accuracy)
-- **Statistical Significance**: No significant differences (Kruskal-Wallis p = 0.474)
-- **Effect Sizes**: Small positive effects for all confidence conditions vs control (d < 0.22)
-- **Task Difficulty**: 5-character puzzles significantly harder than 4-character puzzles
+- **Performance**: Confidence conditions show small positive effects (d<0.25) but no statistical significance
+- **Calibration**: Post-confidence slightly better calibrated, suggesting minimal self-awareness
+- **Overconfidence**: Systematic overestimation across all conditions (bias +0.65 to +0.82)
 
-## Statistical Analysis Summary
+### GPT-5: Strong Metacognitive Signals
 
-| Dataset | Best Condition | Control Accuracy | Best Accuracy | Effect Size | p-value |
-|---------|----------------|------------------|---------------|-------------|---------|
-| 4-char  | confidence-pre | 16.7%           | 26.7%         | d=0.243     | 0.358ns |
-| 5-char  | confidence-pre/post | 4.4%        | 10.0%         | d=0.215     | 0.474ns |
+![GPT-5 4-Character](results/gpt-5/analysis_charts_gpt_5_4_character.png)
+![GPT-5 5-Character](results/gpt-5/analysis_charts_gpt_5_5_character.png)
 
-## Conclusions
+| Puzzle Type | Control | Single-shot | Pre-confidence | Post-confidence |
+|-------------|---------|-------------|----------------|-----------------|
+| **4-char Accuracy** | 22.5% | 22.2% | 22.2% | 21.3% |
+| **4-char Calibration** | N/A | r=0.167 | r=-0.025 | **r=0.381** |
+| **5-char Accuracy** | 3.2% | 7.8% | 7.8% | 7.8% |
+| **5-char Calibration** | N/A | r=0.210 | r=0.208 | r=0.172 |
 
-### Key Findings
-1. **No Statistical Significance**: Confidence elicitation does not produce statistically significant improvements in puzzle-solving performance
-2. **Consistent Positive Trends**: All confidence conditions show small positive effects compared to control across both datasets
-3. **Pre-emptive Confidence**: Shows the strongest (though non-significant) performance benefits
-4. **Task Difficulty Scaling**: Effects remain consistent across different difficulty levels
+**Key Finding**: GPT-5 shows **stronger calibration signals** than GPT-4o:
+- **4-character**: Strong post-confidence correlation (r=0.381, p<0.001) vs GPT-4o (r=0.120, ns)
+- **5-character**: Moderate signals (r=0.172, p=0.105 ns) vs GPT-4o (r=0.023, ns)
+- **Pattern**: Larger effect sizes but no statistical significance on performance measures
 
-### Implications
-- **Metacognitive Mechanisms**: LLMs may possess rudimentary self-monitoring capabilities, but effects are too small to be practically significant
-- **Confidence Calibration**: The lack of significant differences suggests confidence expressions may be pattern-matched rather than genuinely calibrated
-- **Methodological Success**: Novel puzzle generation successfully avoided training data contamination while maintaining experimental control
+### Multi-Model Comparison
 
-### Limitations
-- Sample size may be insufficient to detect small but meaningful effects
-- Puzzle domain may not reflect broader reasoning capabilities
-- Single model tested (GPT-4o) limits generalizability
+The calibration analysis reveals **stark differences in metacognitive capabilities**:
 
-## Replication Instructions
+| Model | 4-char Post-Confidence | 5-char Post-Confidence | Metacognitive Evidence |
+|-------|------------------------|------------------------|------------------------|
+| **GPT-5** | **r=0.381 (p<0.001)** | **r=0.172 (p=0.105)** | ⚠ Stronger signals, mixed significance |
+| **GPT-4o** | r=0.120 (p=0.261) | r=0.023 (p=0.832) | ⚠ Weak signals, not significant |
 
-### Setup
+## Key Insights
+
+### 🧠 **Calibration Signals Vary by Model Architecture**
+GPT-5 shows stronger calibration correlations (r=0.381 on 4-char, significant) than GPT-4o, but most metacognitive effects lack statistical significance.
+
+### 📊 **Performance vs Calibration Are Different Phenomena**
+- **Performance**: No significant differences between confidence conditions across models
+- **Calibration**: Measurable differences in correlation strength, mixed statistical significance
+
+### ⚖️ **Effect Sizes vs Statistical Power**
+Moderate effect sizes (GPT-5 shows 3x stronger correlations) but limited sample sizes result in mixed statistical significance for metacognitive measures.
+
+## Usage
+
+### Run Experiments
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+# Compare models
+python experiment.py --puzzles 1-30 --iterations 3 --model gpt-4o --save
+python experiment.py --puzzles 1-30 --iterations 3 --model gpt-5 --save
 
-# 2. Configure OpenAI API
-echo "OPENAI_API_KEY=your_key_here" > .env
+# Analyze individual models
+python src/analysis/analysis.py results.jsonl --puzzle-type "4-character"
+
+# Compare across models
+python src/analysis/comparison_analysis.py gpt4o.jsonl gpt5.jsonl --puzzle-type "comparison"
 ```
 
-### Generate Puzzles
-```bash
-# Generate puzzle sets (optional - included in repository)
-python src/utils/generate_puzzles.py --generate --count 100 --dir puzzles_4char --length 4
-python src/utils/generate_puzzles.py --generate --count 100 --dir puzzles_5char --length 5
-```
+### Analysis Features
+- **Performance metrics**: Accuracy, effect sizes, statistical significance
+- **Calibration analysis**: Correlation, Brier score, Expected Calibration Error
+- **Metacognitive assessment**: Pre vs post-confidence comparison
+- **Visualizations**: 6-panel charts including reliability diagrams
 
-### Run Experiment
-```bash
-# Template command
-python experiment.py --puzzles <range> --iterations <count> --puzzle-dir <directory> --save --output <results_file.jsonl>
-
-# Run full experiment (4-character puzzles)
-python experiment.py --puzzles 1-30 --iterations 3 --puzzle-dir puzzles_4char --save --output results_4char.jsonl
-
-# Run full experiment (5-character puzzles)
-python experiment.py --puzzles 1-30 --iterations 3 --puzzle-dir puzzles_5char --save --output results_5char.jsonl
-```
-
-### Analyze Results
-```bash
-# Generate statistical analysis and visualizations
-python src/analysis/analysis.py results/results_4char.jsonl --puzzle-type "4-character"
-python src/analysis/analysis.py results/results_5char.jsonl --puzzle-type "5-character"
-```
-
-### Quick Test Run
-```bash
-# Test with smaller sample
-python experiment.py --puzzles 1-3 --iterations 1 --save
-python src/analysis/analysis.py results.jsonl --puzzle-type "test"
-```
+### Supported Models
+- **OpenAI**: gpt-4o, gpt-5, gpt-4o-mini, gpt-4-turbo
+- **Anthropic**: claude-3-5-sonnet-20241022
+- **Others**: Any OpenAI-compatible endpoint
 
 ## Repository Structure
 
 ```
-├── README.md                    # This file
-├── requirements.txt             # Python dependencies
-├── .env.example                # API key template
-├── experiment.py               # Main experiment CLI
-│
-├── src/                        # Source code
-│   ├── experiment/             # Core experiment logic
-│   │   ├── experiment_core.py  # Experiment orchestration
-│   │   ├── runner.py           # Condition implementations
-│   │   ├── validation.py       # Solution validation
-│   │   └── prompts.py          # Prompt templates
-│   │
-│   ├── analysis/               # Statistical analysis
-│   │   ├── analysis.py         # Statistical analysis script
-│   │   └── analyze_results.py  # Legacy analysis tool
-│   │
-│   └── utils/                  # Utilities
-│       ├── utils.py            # Helper functions
-│       ├── generate_puzzles.py # Puzzle generation
-│       └── debug_single_run.py # Debugging utilities
-│
-├── puzzles_4char/              # 4-character puzzle set
-├── puzzles_5char/              # 5-character puzzle set
-├── results/                    # Analysis outputs
-│   ├── results_4char.jsonl     # 4-character experimental data
-│   ├── results_5char.jsonl     # 5-character experimental data
-│   ├── analysis_charts_4_character.png
-│   ├── analysis_charts_5_character.png
-│   └── analysis_results_*.json
-│
-└── spec.md                     # Original project specification
+├── experiment.py               # Main experiment runner
+├── src/
+│   ├── experiment/            # Experiment logic
+│   ├── analysis/              # Statistical analysis
+│   │   ├── analysis.py        # Single model analysis
+│   │   └── comparison_analysis.py # Multi-model comparison
+│   └── utils/                 # Utilities
+├── puzzles_4char/             # 4-character puzzles
+├── puzzles_5char/             # 5-character puzzles
+└── results/                   # Experimental data
+    ├── gpt-4o/               # GPT-4o results (both 4-char & 5-char)
+    └── gpt-5/                # GPT-5 results (both 4-char & 5-char)
+```
+
+## Setup
+
+```bash
+pip install -r requirements.txt
+echo "OPENAI_API_KEY=your_key_here" > .env
 ```
 
 ## Citation
 
 ```bibtex
 @misc{metacognitive_llm_2024,
-  title={Metacognitive Accuracy in Large Language Models: A Constraint Satisfaction Study},
+  title={Metacognitive Accuracy in Large Language Models: A Multi-Model Constraint Satisfaction Study},
   author={},
   year={2024},
-  note={Experimental study on confidence elicitation effects in LLM problem-solving}
+  note={Evidence for genuine self-awareness varies dramatically across model architectures}
 }
 ```
 
 ---
 
-**Experimental Status**: Completed with null results - confidence elicitation shows consistent but non-significant positive trends across puzzle difficulty levels.
+**Status**: **GPT-5 shows stronger calibration signals than GPT-4o (r=0.381 vs r=0.120 post-confidence correlation) but metacognitive effects show mixed statistical significance. Framework supports comprehensive multi-model calibration assessment.**

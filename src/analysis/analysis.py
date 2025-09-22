@@ -32,6 +32,7 @@ class ConfidenceAnalyzer:
         self.jsonl_path = jsonl_path
         self.puzzle_type = puzzle_type
         self.data = None
+        self.model_name = None
         self.conditions = ['control', 'single-shot', 'confidence-pre', 'confidence-post']
 
     def load_data(self) -> pd.DataFrame:
@@ -41,8 +42,41 @@ class ConfidenceAnalyzer:
             for line in f:
                 records.append(json.loads(line.strip()))
 
-        self.data = pd.DataFrame(records)
-        print(f"Loaded {len(self.data)} records from {self.jsonl_path}")
+        raw_data = pd.DataFrame(records)
+
+        # Filter out invalid records based on condition requirements
+        valid_mask = pd.Series([True] * len(raw_data))
+
+        # For control condition: null confidence is OK, but must have proposed_solution
+        control_mask = (raw_data['condition'] == 'control')
+        control_valid = control_mask & (raw_data['proposed_solution'].notna())
+
+        # For confidence conditions: must have both confidence and proposed_solution
+        conf_conditions = raw_data['condition'].isin(['single-shot', 'confidence-pre', 'confidence-post'])
+        conf_valid = conf_conditions & (raw_data['confidence'].notna()) & (raw_data['proposed_solution'].notna())
+
+        # Combine valid records
+        valid_mask = control_valid | conf_valid
+
+        self.data = raw_data[valid_mask].copy()
+
+        # Detect model name from data
+        if 'model' in self.data.columns and len(self.data) > 0:
+            unique_models = self.data['model'].unique()
+            if len(unique_models) == 1:
+                self.model_name = unique_models[0].upper()
+            else:
+                self.model_name = f"Mixed-{len(unique_models)}-Models"
+        else:
+            self.model_name = "GPT-4o"  # Default fallback
+
+        # Report filtering
+        filtered_count = len(raw_data) - len(self.data)
+        print(f"Loaded {len(raw_data)} records from {self.jsonl_path}")
+        if filtered_count > 0:
+            print(f"Filtered out {filtered_count} records with null solutions/confidence")
+        print(f"Valid records: {len(self.data)}")
+        print(f"Model: {self.model_name}")
         print(f"Conditions: {sorted(self.data['condition'].unique())}")
         print(f"Puzzles: {len(self.data['puzzle_id'].unique())}")
 
@@ -135,6 +169,157 @@ class ConfidenceAnalyzer:
 
         return effect_sizes
 
+    def analyze_confidence_calibration(self) -> Dict[str, Any]:
+        """Analyze how well confidence ratings predict actual performance (calibration analysis)."""
+        calibration_results = {}
+
+        # Only analyze conditions with confidence ratings
+        confidence_conditions = ['single-shot', 'confidence-pre', 'confidence-post']
+
+        for condition in confidence_conditions:
+            condition_data = self.data[
+                (self.data['condition'] == condition) &
+                (self.data['confidence'].notna())
+            ]
+
+            if len(condition_data) == 0:
+                continue
+
+            confidences = condition_data['confidence'].values
+            accuracies = condition_data['correct'].astype(int).values
+
+            # Calculate correlation between confidence and accuracy
+            if len(confidences) > 1:
+                correlation, p_value = stats.pearsonr(confidences, accuracies)
+
+                # Calculate calibration metrics
+                # Bin confidences and calculate accuracy within each bin
+                bins = np.linspace(0, 10, 11)  # 0-1, 1-2, ..., 9-10
+                bin_indices = np.digitize(confidences, bins) - 1
+                bin_indices = np.clip(bin_indices, 0, len(bins) - 2)
+
+                bin_accuracies = []
+                bin_confidences = []
+                bin_counts = []
+
+                for i in range(len(bins) - 1):
+                    mask = bin_indices == i
+                    if np.sum(mask) > 0:
+                        bin_acc = np.mean(accuracies[mask])
+                        bin_conf = np.mean(confidences[mask]) / 10.0  # Convert to 0-1 scale
+                        bin_count = np.sum(mask)
+
+                        bin_accuracies.append(bin_acc)
+                        bin_confidences.append(bin_conf)
+                        bin_counts.append(bin_count)
+
+                # Calculate Brier score (lower is better)
+                brier_score = np.mean((confidences / 10.0 - accuracies) ** 2) if len(confidences) > 0 else np.nan
+
+                # Calculate Expected Calibration Error (ECE)
+                ece = 0
+                total_samples = len(confidences)
+                for bin_acc, bin_conf, bin_count in zip(bin_accuracies, bin_confidences, bin_counts):
+                    ece += (bin_count / total_samples) * abs(bin_acc - bin_conf)
+
+                # Calculate overconfidence/underconfidence
+                mean_confidence = np.mean(confidences) / 10.0  # Convert to 0-1 scale
+                mean_accuracy = np.mean(accuracies)
+                calibration_bias = mean_confidence - mean_accuracy  # Positive = overconfident
+
+                calibration_results[condition] = {
+                    'correlation': correlation,
+                    'correlation_p_value': p_value,
+                    'brier_score': brier_score,
+                    'expected_calibration_error': ece,
+                    'calibration_bias': calibration_bias,
+                    'mean_confidence': mean_confidence,
+                    'mean_accuracy': mean_accuracy,
+                    'n_samples': len(confidences),
+                    'bin_data': list(zip(bin_confidences, bin_accuracies, bin_counts))
+                }
+
+        return calibration_results
+
+    def print_calibration_analysis(self, calibration_results: Dict[str, Any]):
+        """Print confidence calibration analysis."""
+        print(f"\n{'='*80}")
+        print(f"CONFIDENCE CALIBRATION ANALYSIS - {self.model_name} ({self.puzzle_type})")
+        print(f"{'='*80}")
+
+        print(f"\nConfidence calibration measures how well confidence ratings predict actual performance.")
+        print(f"In an ideal world, post-confidence should be better calibrated than pre-confidence.")
+
+        # Header
+        header = f"{'Condition':<15} {'Correlation':<12} {'Corr_p':<8} {'Brier':<8} {'ECE':<8} {'Bias':<8} {'Interp':<15}"
+        print(f"\n{header}")
+        print("-" * len(header))
+
+        # Sort by correlation (best calibrated first)
+        sorted_conditions = sorted(calibration_results.items(),
+                                 key=lambda x: abs(x[1]['correlation']), reverse=True)
+
+        for condition, results in sorted_conditions:
+            correlation = results['correlation']
+            p_value = results['correlation_p_value']
+            brier = results['brier_score']
+            ece = results['expected_calibration_error']
+            bias = results['calibration_bias']
+
+            # Interpret bias
+            if abs(bias) < 0.05:
+                bias_interp = "well-calibrated"
+            elif bias > 0:
+                bias_interp = "overconfident"
+            else:
+                bias_interp = "underconfident"
+
+            p_formatted = f"{p_value:.3f}" if p_value > 0.001 else "<0.001"
+
+            print(f"{condition:<15} {correlation:<12.3f} {p_formatted:<8} {brier:<8.3f} {ece:<8.3f} {bias:<+8.3f} {bias_interp:<15}")
+
+        # Key findings
+        print(f"\n=🔍 CALIBRATION FINDINGS:")
+
+        # Find best calibrated condition
+        if calibration_results:
+            best_corr_condition = max(calibration_results.items(),
+                                    key=lambda x: abs(x[1]['correlation']))[0]
+            best_corr_value = calibration_results[best_corr_condition]['correlation']
+
+            lowest_ece_condition = min(calibration_results.items(),
+                                     key=lambda x: x[1]['expected_calibration_error'])[0]
+            lowest_ece_value = calibration_results[lowest_ece_condition]['expected_calibration_error']
+
+            print(f"   Best correlation with performance: {best_corr_condition} (r={best_corr_value:.3f})")
+            print(f"   Best calibrated (lowest ECE): {lowest_ece_condition} (ECE={lowest_ece_value:.3f})")
+
+            # Compare pre vs post confidence
+            if 'confidence-pre' in calibration_results and 'confidence-post' in calibration_results:
+                pre_corr = calibration_results['confidence-pre']['correlation']
+                post_corr = calibration_results['confidence-post']['correlation']
+                pre_ece = calibration_results['confidence-pre']['expected_calibration_error']
+                post_ece = calibration_results['confidence-post']['expected_calibration_error']
+
+                print(f"\n   Pre-confidence correlation: {pre_corr:.3f}")
+                print(f"   Post-confidence correlation: {post_corr:.3f}")
+
+                if abs(post_corr) > abs(pre_corr):
+                    print(f"   ✓ Post-confidence shows BETTER correlation (as expected)")
+                else:
+                    print(f"   ⚠ Pre-confidence shows better correlation (unexpected)")
+
+                if post_ece < pre_ece:
+                    print(f"   ✓ Post-confidence is BETTER calibrated (ECE: {post_ece:.3f} vs {pre_ece:.3f})")
+                else:
+                    print(f"   ⚠ Pre-confidence is better calibrated (ECE: {pre_ece:.3f} vs {post_ece:.3f})")
+
+        print(f"\n   Metrics explained:")
+        print(f"   • Correlation: How well confidence predicts accuracy (-1 to 1, closer to ±1 is better)")
+        print(f"   • Brier Score: Prediction accuracy (0 to 1, lower is better)")
+        print(f"   • ECE: Expected Calibration Error (0 to 1, lower is better)")
+        print(f"   • Bias: Over/underconfidence (0 is perfect, + is overconfident, - is underconfident)")
+
     def format_p_value(self, p: float) -> str:
         """Format p-value with significance stars."""
         if p < 0.001:
@@ -161,7 +346,7 @@ class ConfidenceAnalyzer:
     def print_summary_table(self, condition_stats: Dict, test_results: Dict, effect_sizes: Dict):
         """Print formatted summary statistics table."""
         print(f"\n{'='*80}")
-        print(f"SUMMARY STATISTICS TABLE ({self.puzzle_type})")
+        print(f"SUMMARY STATISTICS TABLE - {self.model_name} ({self.puzzle_type})")
         print(f"{'='*80}")
 
         # Header
@@ -183,10 +368,13 @@ class ConfidenceAnalyzer:
 
             print(f"{condition:<15} {stats_data['accuracy_mean']:<13.3f} {stats_data['accuracy_std']:<11.3f} {conf_mean:<15.2f} {stats_data['n']:<4} {p_formatted:<14} {effect_size:<12.3f}")
 
-    def create_visualizations(self, condition_stats: Dict, test_results: Dict, effect_sizes: Dict):
+    def create_visualizations(self, condition_stats: Dict, test_results: Dict, effect_sizes: Dict, calibration_results: Dict = None):
         """Create key visualizations."""
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-        fig.suptitle(f'Confidence Experiment Analysis ({self.puzzle_type})', fontsize=16, fontweight='bold')
+        if calibration_results:
+            fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3, 2, figsize=(15, 18))
+        else:
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+        fig.suptitle(f'Confidence Experiment Analysis - {self.model_name} ({self.puzzle_type})', fontsize=16, fontweight='bold')
 
         # 1. Accuracy by condition with error bars and significance stars
         conditions = list(self.conditions)
@@ -266,8 +454,58 @@ class ConfidenceAnalyzer:
         ax4.legend()
         ax4.set_ylim(-0.1, 1.1)
 
+        # 5. & 6. Calibration plots (if calibration results available)
+        if calibration_results:
+            # 5. Calibration plot (reliability diagram)
+            ax5.plot([0, 1], [0, 1], 'k--', alpha=0.5, label='Perfect calibration')
+
+            colors = ['skyblue', 'lightgreen', 'lightcoral']
+            for i, (condition, results) in enumerate(calibration_results.items()):
+                bin_data = results['bin_data']
+                if bin_data:
+                    bin_confs, bin_accs, bin_counts = zip(*bin_data)
+                    # Size points by bin count
+                    sizes = [max(20, count * 3) for count in bin_counts]
+                    ax5.scatter(bin_confs, bin_accs, alpha=0.7, s=sizes,
+                               color=colors[i % len(colors)], label=f'{condition} (r={results["correlation"]:.2f})')
+
+            ax5.set_xlabel('Mean Confidence')
+            ax5.set_ylabel('Accuracy')
+            ax5.set_title('Confidence Calibration (Reliability Diagram)')
+            ax5.legend()
+            ax5.set_xlim(0, 1)
+            ax5.set_ylim(0, 1)
+            ax5.grid(True, alpha=0.3)
+
+            # 6. Calibration metrics comparison
+            conditions = list(calibration_results.keys())
+            correlations = [calibration_results[c]['correlation'] for c in conditions]
+            eces = [calibration_results[c]['expected_calibration_error'] for c in conditions]
+
+            x = np.arange(len(conditions))
+            width = 0.35
+
+            ax6_twin = ax6.twinx()
+            bars1 = ax6.bar(x - width/2, [abs(c) for c in correlations], width,
+                           label='|Correlation|', alpha=0.7, color='steelblue')
+            bars2 = ax6_twin.bar(x + width/2, eces, width,
+                                label='ECE (lower better)', alpha=0.7, color='orange')
+
+            ax6.set_xlabel('Condition')
+            ax6.set_ylabel('|Correlation|', color='steelblue')
+            ax6_twin.set_ylabel('Expected Calibration Error', color='orange')
+            ax6.set_title('Calibration Quality Metrics')
+            ax6.set_xticks(x)
+            ax6.set_xticklabels(conditions, rotation=45)
+
+            # Add correlation values on bars
+            for i, (bar, corr) in enumerate(zip(bars1, correlations)):
+                height = bar.get_height()
+                ax6.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                        f'{corr:.2f}', ha='center', va='bottom', fontsize=8)
+
         plt.tight_layout()
-        chart_file = f"analysis_charts_{self.puzzle_type.replace('-', '_').replace(' ', '_')}.png"
+        chart_file = f"analysis_charts_{self.model_name.lower().replace('-', '_')}_{self.puzzle_type.replace('-', '_').replace(' ', '_')}.png"
         plt.savefig(chart_file, dpi=300, bbox_inches='tight')
         plt.close()  # Close the figure to free memory
         print(f"📊 Charts saved to: {chart_file}")
@@ -275,7 +513,7 @@ class ConfidenceAnalyzer:
     def print_key_findings(self, condition_stats: Dict, test_results: Dict, effect_sizes: Dict):
         """Print key findings summary."""
         print(f"\n{'='*80}")
-        print(f"KEY FINDINGS ({self.puzzle_type})")
+        print(f"KEY FINDINGS - {self.model_name} ({self.puzzle_type})")
         print(f"{'='*80}")
 
         # Best/worst performing conditions
@@ -332,17 +570,23 @@ class ConfidenceAnalyzer:
         # Load data
         self.load_data()
 
+        print(f"=, Running Analysis for {self.model_name} {self.puzzle_type} puzzles...")
+
         # Calculate statistics
         condition_stats = self.get_condition_stats()
         test_results = self.run_statistical_tests(condition_stats)
         effect_sizes = self.calculate_effect_sizes(condition_stats)
 
+        # Analyze confidence calibration
+        calibration_results = self.analyze_confidence_calibration()
+
         # Print results
         self.print_summary_table(condition_stats, test_results, effect_sizes)
         self.print_key_findings(condition_stats, test_results, effect_sizes)
+        self.print_calibration_analysis(calibration_results)
 
         # Create visualizations
-        self.create_visualizations(condition_stats, test_results, effect_sizes)
+        self.create_visualizations(condition_stats, test_results, effect_sizes, calibration_results)
 
         # Save results to JSON file
         summary = {
@@ -350,6 +594,7 @@ class ConfidenceAnalyzer:
             'condition_stats': condition_stats,
             'test_results': test_results,
             'effect_sizes': effect_sizes,
+            'calibration_results': calibration_results,
             'best_condition': max(condition_stats, key=lambda c: condition_stats[c]['accuracy_mean']),
             'significant_differences': any(
                 test_results['mann_whitney'][f"{c}_vs_control"]['p_value'] < 0.05
@@ -361,19 +606,19 @@ class ConfidenceAnalyzer:
         def convert_numpy_to_json(obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
-            elif isinstance(obj, np.integer):
+            elif isinstance(obj, (np.integer, np.int64)):
                 return int(obj)
             elif isinstance(obj, np.floating):
                 return float(obj)
             elif isinstance(obj, dict):
                 return {k: convert_numpy_to_json(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
+            elif isinstance(obj, (list, tuple)):
                 return [convert_numpy_to_json(item) for item in obj]
             else:
                 return obj
 
         # Save to file
-        output_file = f"analysis_results_{self.puzzle_type.replace('-', '_').replace(' ', '_')}.json"
+        output_file = f"analysis_results_{self.model_name.lower().replace('-', '_')}_{self.puzzle_type.replace('-', '_').replace(' ', '_')}.json"
         with open(output_file, 'w') as f:
             import json
             json_ready_summary = convert_numpy_to_json(summary)

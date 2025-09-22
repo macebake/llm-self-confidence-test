@@ -21,15 +21,16 @@ def main():
     )
     parser.add_argument("--save", action="store_true", help="Save results to results.jsonl")
     parser.add_argument("--puzzle-dir", type=str, default="puzzles", help="Puzzle directory to use (default: puzzles)")
+    parser.add_argument("--model", type=str, default="gpt-4o", help="Model to use (default: gpt-4o)")
 
     args = parser.parse_args()
 
     puzzle_ids = parse_puzzle_ids(args.puzzles)
 
     print("=== Metacognitive Accuracy Experiment ===")
-    print(f"Puzzles: {puzzle_ids}, Iterations: {args.iterations}, Directory: {args.puzzle_dir}")
+    print(f"Puzzles: {puzzle_ids}, Iterations: {args.iterations}, Directory: {args.puzzle_dir}, Model: {args.model}")
 
-    results = run_experiment(puzzle_ids, args.iterations, args.puzzle_dir, args.save)
+    results = run_experiment(puzzle_ids, args.iterations, args.puzzle_dir, args.save, args.model)
 
     if args.save:
         if results:

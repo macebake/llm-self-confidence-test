@@ -1,0 +1,186 @@
+{
+  "puzzle_type": "5-character",
+  "condition_stats": {
+    "control": {
+      "n": 82,
+      "accuracy_mean": 0.04878048780487805,
+      "accuracy_std": 0.21673440675482067,
+      "confidence_mean": null,
+      "confidence_std": null
+    },
+    "single-shot": {
+      "n": 90,
+      "accuracy_mean": 0.07777777777777778,
+      "accuracy_std": 0.26932198589215456,
+      "confidence_mean": 8.908888888888889,
+      "confidence_std": 0.66529446795283
+    },
+    "confidence-pre": {
+      "n": 90,
+      "accuracy_mean": 0.1,
+      "accuracy_std": 0.30168068541929594,
+      "confidence_mean": 9.163333333333334,
+      "confidence_std": 0.5180885352303007
+    },
+    "confidence-post": {
+      "n": 90,
+      "accuracy_mean": 0.1,
+      "accuracy_std": 0.30168068541929594,
+      "confidence_mean": 8.64,
+      "confidence_std": 1.2183798415117706
+    }
+  },
+  "test_results": {
+    "kruskal_wallis": {
+      "statistic": 1.983293190678046,
+      "p_value": 0.5758814966400998
+    },
+    "mann_whitney": {
+      "single-shot_vs_control": {
+        "statistic": 3797.0,
+        "p_value": 0.4410374875314712
+      },
+      "confidence-pre_vs_control": {
+        "statistic": 3879.0,
+        "p_value": 0.2068634352614458
+      },
+      "confidence-post_vs_control": {
+        "statistic": 3879.0,
+        "p_value": 0.2068634352614458
+      }
+    },
+    "chi_square": {
+      "statistic": 1.9889435986278292,
+      "p_value": 0.5747046705997929,
+      "dof": 3,
+      "contingency_table": [
+        [
+          4,
+          78
+        ],
+        [
+          7,
+          83
+        ],
+        [
+          9,
+          81
+        ],
+        [
+          9,
+          81
+        ]
+      ]
+    }
+  },
+  "effect_sizes": {
+    "single-shot": 0.1180317958699991,
+    "confidence-pre": 0.19355189300844172,
+    "confidence-post": 0.19355189300844172
+  },
+  "calibration_results": {
+    "single-shot": {
+      "correlation": 0.16541027289894067,
+      "correlation_p_value": 0.11922429160053516,
+      "brier_score": 0.7313933333333333,
+      "expected_calibration_error": 0.8131111111111111,
+      "calibration_bias": 0.8131111111111111,
+      "mean_confidence": 0.8908888888888888,
+      "mean_accuracy": 0.07777777777777778,
+      "n_samples": 90,
+      "bin_data": [
+        [
+          0.73,
+          0.0,
+          5
+        ],
+        [
+          0.841891891891892,
+          0.02702702702702703,
+          37
+        ],
+        [
+          0.9454166666666668,
+          0.125,
+          48
+        ]
+      ]
+    },
+    "confidence-pre": {
+      "correlation": 0.07404499873555649,
+      "correlation_p_value": 0.48794168720520703,
+      "brier_score": 0.7567655555555555,
+      "expected_calibration_error": 0.8163333333333334,
+      "calibration_bias": 0.8163333333333335,
+      "mean_confidence": 0.9163333333333334,
+      "mean_accuracy": 0.1,
+      "n_samples": 90,
+      "bin_data": [
+        [
+          0.75,
+          0.0,
+          2
+        ],
+        [
+          0.85,
+          0.07692307692307693,
+          26
+        ],
+        [
+          0.9495161290322581,
+          0.11290322580645161,
+          62
+        ]
+      ]
+    },
+    "confidence-post": {
+      "correlation": 0.022620984497941227,
+      "correlation_p_value": 0.8323966667603929,
+      "brier_score": 0.686731111111111,
+      "expected_calibration_error": 0.764,
+      "calibration_bias": 0.7640000000000001,
+      "mean_confidence": 0.8640000000000001,
+      "mean_accuracy": 0.1,
+      "n_samples": 90,
+      "bin_data": [
+        [
+          0.25,
+          0.0,
+          1
+        ],
+        [
+          0.45,
+          0.0,
+          1
+        ],
+        [
+          0.5,
+          0.0,
+          1
+        ],
+        [
+          0.65,
+          0.0,
+          4
+        ],
+        [
+          0.75,
+          0.2222222222222222,
+          9
+        ],
+        [
+          0.85,
+          0.09375,
+          32
+        ],
+        [
+          0.9526190476190477,
+          0.09523809523809523,
+          42
+        ]
+      ]
+    }
+  },
+  "best_condition": "confidence-pre",
+  "significant_differences": false
+}

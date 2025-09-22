@@ -1,0 +1,191 @@
+{
+  "puzzle_type": "5-character",
+  "condition_stats": {
+    "control": {
+      "n": 62,
+      "accuracy_mean": 0.03225806451612903,
+      "accuracy_std": 0.17812704394997528,
+      "confidence_mean": null,
+      "confidence_std": null
+    },
+    "single-shot": {
+      "n": 90,
+      "accuracy_mean": 0.07777777777777778,
+      "accuracy_std": 0.26932198589215456,
+      "confidence_mean": 8.31,
+      "confidence_std": 0.7412485670827614
+    },
+    "confidence-pre": {
+      "n": 90,
+      "accuracy_mean": 0.07777777777777778,
+      "accuracy_std": 0.26932198589215456,
+      "confidence_mean": 9.302222222222222,
+      "confidence_std": 0.4388385533486303
+    },
+    "confidence-post": {
+      "n": 90,
+      "accuracy_mean": 0.07777777777777778,
+      "accuracy_std": 0.26932198589215456,
+      "confidence_mean": 6.177777777777778,
+      "confidence_std": 2.605429843454539
+    }
+  },
+  "test_results": {
+    "kruskal_wallis": {
+      "statistic": 1.615459844980433,
+      "p_value": 0.6558895061631662
+    },
+    "mann_whitney": {
+      "single-shot_vs_control": {
+        "statistic": 2917.0,
+        "p_value": 0.24600026992084223
+      },
+      "confidence-pre_vs_control": {
+        "statistic": 2917.0,
+        "p_value": 0.24600026992084223
+      },
+      "confidence-post_vs_control": {
+        "statistic": 2917.0,
+        "p_value": 0.24600026992084223
+      }
+    },
+    "chi_square": {
+      "statistic": 1.6203403883192553,
+      "p_value": 0.6547866179901551,
+      "dof": 3,
+      "contingency_table": [
+        [
+          2,
+          60
+        ],
+        [
+          7,
+          83
+        ],
+        [
+          7,
+          83
+        ],
+        [
+          7,
+          83
+        ]
+      ]
+    }
+  },
+  "effect_sizes": {
+    "single-shot": 0.19245857521864676,
+    "confidence-pre": 0.19245857521864676,
+    "confidence-post": 0.19245857521864676
+  },
+  "calibration_results": {
+    "single-shot": {
+      "correlation": 0.20993417858824692,
+      "correlation_p_value": 0.047037639176057286,
+      "brier_score": 0.6362166666666665,
+      "expected_calibration_error": 0.7532222222222222,
+      "calibration_bias": 0.7532222222222222,
+      "mean_confidence": 0.8310000000000001,
+      "mean_accuracy": 0.07777777777777778,
+      "n_samples": 90,
+      "bin_data": [
+        [
+          0.65,
+          0.3333333333333333,
+          3
+        ],
+        [
+          0.7562068965517242,
+          0.0,
+          29
+        ],
+        [
+          0.851,
+          0.025,
+          40
+        ],
+        [
+          0.9372222222222222,
+          0.2777777777777778,
+          18
+        ]
+      ]
+    },
+    "confidence-pre": {
+      "correlation": 0.20767031159999866,
+      "correlation_p_value": 0.049522804083512104,
+      "brier_score": 0.7954399999999999,
+      "expected_calibration_error": 0.8524444444444443,
+      "calibration_bias": 0.8524444444444443,
+      "mean_confidence": 0.9302222222222222,
+      "mean_accuracy": 0.07777777777777778,
+      "n_samples": 90,
+      "bin_data": [
+        [
+          0.755,
+          0.0,
+          2
+        ],
+        [
+          0.8607142857142858,
+          0.0,
+          14
+        ],
+        [
+          0.9481081081081081,
+          0.0945945945945946,
+          74
+        ]
+      ]
+    },
+    "confidence-post": {
+      "correlation": 0.17222319813031223,
+      "correlation_p_value": 0.10455368117127156,
+      "brier_score": 0.4065555555555555,
+      "expected_calibration_error": 0.54,
+      "calibration_bias": 0.54,
+      "mean_confidence": 0.6177777777777778,
+      "mean_accuracy": 0.07777777777777778,
+      "n_samples": 90,
+      "bin_data": [
+        [
+          0.215625,
+          0.0625,
+          16
+        ],
+        [
+          0.3055555555555555,
+          0.0,
+          9
+        ],
+        [
+          0.4083333333333333,
+          0.0,
+          6
+        ],
+        [
+          0.65,
+          0.0,
+          7
+        ],
+        [
+          0.75,
+          0.08,
+          25
+        ],
+        [
+          0.8473684210526315,
+          0.05263157894736842,
+          19
+        ],
+        [
+          0.94375,
+          0.375,
+          8
+        ]
+      ]
+    }
+  },
+  "best_condition": "single-shot",
+  "significant_differences": false
+}
